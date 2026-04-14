@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Lutz Müller">
+    <title>Tour Analyzer Pro v17 – Haltepunkte + Debug + Exporte + OSM-Netz</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="topbar">
+        <div>
+            <div class="title">Tour Analyzer Pro v17 – Haltepunkte + Debug + Exporte + OSM-Netz</div>
+            <div class="subtitle" id="metaDisplay">Lutz Müller (gabischatz)</div>
+        </div>
+        <div class="hint">Rechtsklick bleibt optional. Hauptlogik ab v17: erst GPX-Bereich, dann OSM-Netz, dann Punkte und Teilstücke. Zusätzlich: Debug-Protokoll, Antwort-Statistik und mehrere Exporte.</div>
+    </div>
+
+    <div class="app-shell">
+        <aside class="sidebar">
+            <div class="sidebar-inner">
+                <details class="panel" open>
+                    <summary>1. Dateien laden und Verarbeitung starten</summary>
+                    <div class="panel-body controls">
+                        <div class="row">
+                            <label class="file-label">📂 GPX öffnen <input type="file" id="gpxFileInput" accept=".gpx"></label>
+                            <button class="btn btn-primary" id="reloadOsmBtn" disabled>🚲 OSM-Radrouten neu laden</button>
+                            <button class="btn btn-accent" id="extractBtn" disabled>✂️ Teilstücke berechnen</button>
+                            <button class="btn btn-secondary" id="exportBtn" disabled>💾 Sammel-Export</button>
+                            <button class="btn btn-warn" id="resetBtn">🗑️ Zurücksetzen</button>
+                        </div>
+
+                        <div class="row">
+                            <div class="field">
+                                <label for="relationIdInput">Optionale Relation-ID</label>
+                                <input id="relationIdInput" type="number" placeholder="z. B. 3303088">
+                            </div>
+                            <div class="field">
+                                <label for="pointA">Punkt A (optional manuell)</label>
+                                <input id="pointA" type="text" placeholder="wird per Rechtsklick gesetzt">
+                            </div>
+                            <div class="field">
+                                <label for="pointB">Punkt B (optional manuell)</label>
+                                <input id="pointB" type="text" placeholder="wird per Rechtsklick gesetzt">
+                            </div>
+                        </div>
+
+                        <div class="status" id="status">Bereit. Bitte eine GPX-Datei laden. Danach werden die OSM-Radrouten geladen, die Punkte automatisch gesucht und daraus Teilstücke berechnet.</div>
+                    </div>
+                </details>
+
+                <details class="panel" open>
+                    <summary>2. Beschreibung und Legende</summary>
+                    <div class="panel-body">
+                        <div class="compact-box">Diese Debug-Ansicht ist jetzt klar getrennt: links alle Optionen, rechts die Karte. Jeder Abschnitt links kann einzeln ein- und ausgeklappt werden. So bleiben Karte, Status und Debugging gleichzeitig besser sichtbar.</div>
+                        <div class="legend">
+                            <span class="legend-item"><span class="swatch" style="background:#facc15"></span> Aufgenommene Route</span>
+                            <span class="legend-item"><span class="swatch" style="background:#2563eb"></span> Hinweg</span>
+                            <span class="legend-item"><span class="swatch" style="background:#dc2626"></span> Rückweg</span>
+                            <span class="legend-item"><span class="swatch" style="background:#16a34a"></span> OSM-Radrouten</span>
+                            <span class="legend-item"><span class="swatch" style="background:#facc15;border-style:dashed;border-color:#dc2626"></span> Gemeinsame Strecke mit roter Punktierung</span>
+                            <span class="legend-item"><span class="swatch" style="background:#7c3aed"></span> Berechnete Netz-Teilstücke</span>
+                            <span class="legend-item">🟠 Kurvenpunkte</span>
+                            <span class="legend-item">🟪 Abzweig/Zusammenführung</span>
+                        </div>
+                    </div>
+                </details>
+
+
+                <details class="panel" open>
+                    <summary>3. Haltepunkte</summary>
+                    <div class="panel-body">
+                        <div class="quick-actions">
+                            <label class="toggle-item"><input type="checkbox" id="breakpointsEnabled" checked> Haltepunkte aktiv</label>
+                            <button class="small-btn" id="breakpointsAllBtn" type="button">Alle Haltepunkte</button>
+                            <button class="small-btn" id="breakpointsNoneBtn" type="button">Keine Haltepunkte</button>
+                        </div>
+                        <div class="toggle-grid">
+                            <label class="toggle-item"><input type="checkbox" class="bp-toggle" id="bpFileSelected" checked> GPX-Datei ausgewählt</label>
+                            <label class="toggle-item"><input type="checkbox" class="bp-toggle" id="bpGpxParsed" checked> GPX geparst</label>
+                            <label class="toggle-item"><input type="checkbox" class="bp-toggle" id="bpTrackSimplified" checked> GPX vereinfacht</label>
+                            <label class="toggle-item"><input type="checkbox" class="bp-toggle" id="bpTrackAnalyzed" checked> Bereich / Analyse fertig</label>
+                            <label class="toggle-item"><input type="checkbox" class="bp-toggle" id="bpOsmLoadStart" checked> OSM-Laden starten</label>
+                            <label class="toggle-item"><input type="checkbox" class="bp-toggle" id="bpOverpassBefore" checked> Overpass senden</label>
+                            <label class="toggle-item"><input type="checkbox" class="bp-toggle" id="bpOverpassAfter" checked> Overpass verarbeitet</label>
+                            <label class="toggle-item"><input type="checkbox" class="bp-toggle" id="bpGraphBuilt" checked> OSM-Graph aufgebaut</label>
+                            <label class="toggle-item"><input type="checkbox" class="bp-toggle" id="bpAutoPoints" checked> Auto-Punkte erkannt</label>
+                            <label class="toggle-item"><input type="checkbox" class="bp-toggle" id="bpRoutePieces" checked> Teilstücke berechnet</label>
+                            <label class="toggle-item"><input type="checkbox" class="bp-toggle" id="bpManualSegment" checked> Manuelles Teilstück A→B</label>
+                        </div>
+                        <div class="compact-box breakpoint-summary">
+                            <strong>Aktueller Halt:</strong> <span id="breakpointStatus">Kein Haltepunkt aktiv.</span><br>
+                            Jeder aktivierte Haltepunkt stoppt die Verarbeitung an genau dieser Stelle, schreibt den Schritt in die Konsole und wartet auf deine Freigabe.
+                        </div>
+                    </div>
+                </details>
+
+                <details class="panel" open>
+                    <summary>4. Anzeigeoptionen und Statistik</summary>
+                    <div class="panel-body">
+                        <div class="quick-actions">
+                            <button class="small-btn" id="presetAllBtn" type="button">Alle Ebenen</button>
+                            <button class="small-btn" id="presetResultBtn" type="button">Nur Ergebnis</button>
+                            <button class="small-btn" id="presetDebugBtn" type="button">Debug-Sicht</button>
+                        </div>
+                        <div class="toggle-grid">
+                            <label class="toggle-item"><input type="checkbox" id="showRecorded" checked> Aufgenommene Route</label>
+                            <label class="toggle-item"><input type="checkbox" id="showOutbound" checked> Hinweg</label>
+                            <label class="toggle-item"><input type="checkbox" id="showReturnTrip" checked> Rückweg</label>
+                            <label class="toggle-item"><input type="checkbox" id="showCommon" checked> Gemeinsame Strecke</label>
+                            <label class="toggle-item"><input type="checkbox" id="showOsmRoutes" checked> OSM-Radrouten</label>
+                            <label class="toggle-item"><input type="checkbox" id="showAutoPoints" checked> Auto-Punkte</label>
+                            <label class="toggle-item"><input type="checkbox" id="showAutoPieces" checked> Netz-Teilstücke</label>
+                            <label class="toggle-item"><input type="checkbox" id="showSelected" checked> Auswahl A→B</label>
+                            <label class="toggle-item"><input type="checkbox" id="showMarkers" checked> Marker</label>
+                        </div>
+                        <div class="stats">
+                            <div class="stat-card"><div class="k">Gesamtlänge</div><div class="v" id="statTotal">–</div></div>
+                            <div class="stat-card"><div class="k">Hinweg</div><div class="v" id="statOutbound">–</div></div>
+                            <div class="stat-card"><div class="k">Rückweg</div><div class="v" id="statReturn">–</div></div>
+                            <div class="stat-card"><div class="k">Gemeinsam</div><div class="v" id="statCommon">–</div></div>
+                            <div class="stat-card"><div class="k">Punkte / Teilstücke / A→B</div><div class="v" id="statSegment">–</div></div>
+                            <div class="stat-card"><div class="k">OSM-Radrouten</div><div class="v" id="statRoutes">–</div></div>
+                        </div>
+                    </div>
+                </details>
+
+                <details class="panel" open>
+                    <summary>5. Exporte</summary>
+                    <div class="panel-body">
+                        <div class="row">
+                            <button class="small-btn" id="exportCombinedBtn" disabled>⬇️ Kombi-GeoJSON</button>
+                            <button class="small-btn" id="exportFinalRouteBtn" disabled>⬇️ Final-Route GeoJSON</button>
+                            <button class="small-btn" id="exportFinalRouteGpxBtn" disabled>⬇️ Final-Route GPX</button>
+                            <button class="small-btn" id="exportPiecesBtn" disabled>⬇️ Teilstücke</button>
+                            <button class="small-btn" id="exportOsmBtn" disabled>⬇️ OSM-Wege</button>
+                            <button class="small-btn" id="exportPointsBtn" disabled>⬇️ Auto-Punkte</button>
+                            <button class="small-btn" id="exportRawOverpassBtn" disabled>⬇️ Rohantwort</button>
+                            <button class="small-btn" id="exportDebugBtn" disabled>⬇️ Debug-Bundle</button>
+                        </div>
+                    </div>
+                </details>
+
+                <details class="panel" open>
+                    <summary>6. Overpass-Antwort und Verarbeitung</summary>
+                    <div class="panel-body debug-box">
+                        <div class="debug-grid">
+                            <div class="debug-card">
+                                <h4>Letzte Overpass-Abfrage</h4>
+                                <pre class="debug-pre" id="queryPreview">–</pre>
+                            </div>
+                            <div class="debug-card">
+                                <h4>Letzte Antwort / Zeiten</h4>
+                                <pre class="debug-pre" id="responsePreview">–</pre>
+                            </div>
+                        </div>
+                    </div>
+                </details>
+
+                <details class="panel" open>
+                    <summary>7. Datenlogging</summary>
+                    <div class="panel-body">
+                        <div class="row">
+                            <button class="small-btn" id="clearLogBtn">🧹 Log leeren</button>
+                        </div>
+                        <div class="log-panel" id="logPanel">Noch keine Log-Einträge.</div>
+                    </div>
+                </details>
+            </div>
+        </aside>
+
+        <main class="map-shell">
+            <div class="map-toolbar">
+                <button class="toggle-sidebar-btn" id="toggleSidebarBtn" type="button">☰ Optionen ausblenden</button>
+                <div class="map-toolbar-info">Rechts die Karte, links die Bedienfelder. Jeder Bereich links kann einzeln aufgeklappt oder eingeklappt werden.</div>
+            </div>
+            <div id="map"></div>
+        </main>
+    </div>
+
+
+    <div class="breakpoint-modal hidden" id="breakpointModal" aria-hidden="true">
+        <div class="breakpoint-card" id="breakpointCard">
+            <h3 id="breakpointModalTitle">Haltepunkt</h3>
+            <div class="meta" id="breakpointModalMeta">Warte auf Freigabe.</div>
+            <pre id="breakpointModalDetails">–</pre>
+            <div class="breakpoint-actions">
+                <button class="small-btn" id="breakpointSkipBtn" type="button">Diesen Halt überspringen</button>
+                <button class="small-btn" id="breakpointAbortBtn" type="button" style="background:#b91c1c;">Abbrechen</button>
+                <button class="small-btn" id="breakpointContinueBtn" type="button" style="background:#2563eb;">Weiter</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/togeojson/0.16.0/togeojson.min.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/debug.js"></script>
+    <script src="js/map.js"></script>
+    <script src="js/gpx.js"></script>
+    <script src="js/overpass.js"></script>
+    <script src="js/export.js"></script>
+    <script>
+        window.TAP.initApp();
+    </script>
+</body>
+</html>
