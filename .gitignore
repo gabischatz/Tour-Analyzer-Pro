@@ -1,1 +1,22 @@
+# Betriebssystem
+.DS_Store
+Thumbs.db
 
+# Editor / IDE
+.vscode/
+.idea/
+
+# Temporäre Dateien
+*.tmp
+*.log
+*.bak
+*.swp
+
+# Archive / Exporte
+*.zip
+*.geojson
+*.gpx
+*.json
+
+# Optional: exportierte Rohdaten nicht versionieren
+# tour-analyzer-pro-v17-overpass-raw.json
