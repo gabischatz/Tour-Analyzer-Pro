@@ -459,6 +459,16 @@
         }
         @media (max-width: 900px) {
             .topbar { align-items: flex-start; }
+            .topbar-actions {
+                margin-left: 0;
+                max-width: 100%;
+                width: 100%;
+                align-items: flex-start;
+                text-align: left;
+            }
+            .btn-demo {
+                align-self: flex-start;
+            }
             .app-shell {
                 grid-template-columns: 1fr;
                 grid-template-rows: auto minmax(0, 1fr);
@@ -475,3 +485,27 @@
                 grid-template-rows: 0 minmax(0, 1fr);
             }
         }
+
+.topbar-actions {
+    margin-left: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+    max-width: 58%;
+    text-align: right;
+}
+.topbar-actions .hint {
+    color: rgba(255,255,255,0.72);
+}
+.btn-demo {
+    right: 6px;
+    top: 6px;
+    position: fixed;
+    background: #16a34a;
+    align-self: flex-end;
+    white-space: nowrap;
+}
+.btn-demo:hover {
+    filter: brightness(1.06);
+}

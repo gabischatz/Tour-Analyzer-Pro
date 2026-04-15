@@ -1,20 +1,73 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="author" content="Lutz Müller">
-    <title>Tour Analyzer Pro v17 – Haltepunkte + Debug + Exporte + OSM-Netz</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- ═══════════════════════════════════════════
+         SEO – Grundlegende Meta-Angaben
+    ═══════════════════════════════════════════ -->
+    <title>Tour Analyzer Pro</title>
+    <meta name="description" content="Tour Analyzer Pro zum Laden, Analysieren und Auswerten von GPX-Strecken mit OSM-/Overpass-Daten, Haltepunkten, Debug-Ansicht und Exportfunktionen.">
+    <meta name="keywords" content="GPX, Tour Analyzer, OSM, Overpass, Fahrradroute, GPX Analyse, GeoJSON, Debug, Streckenanalyse">
+    <meta name="author" content="Lutz Müller (gabischatz)">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://gabischatz.de.cool/tour-analyzer/index.html">
+
+    <meta name="license" content="CC BY-SA 4.0">
+    <link rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/deed.de">
+
+    <!-- ═══════════════════════════════════════════
+         Open Graph – Vorschau in sozialen Netzwerken
+    ═══════════════════════════════════════════ -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Tour Analyzer Pro">
+    <meta property="og:description" content="GPX laden, OSM-/Overpass-Daten abrufen, Teilstücke analysieren und Ergebnisse exportieren.">
+    <meta property="og:url" content="https://gabischatz.de.cool/tour-analyzer/index.html">
+    <meta property="og:image" content="https://gabischatz.de.cool/tour-analyzer/preview.png">
+    <meta property="og:image:alt" content="Vorschau von Tour Analyzer Pro mit Karte und Streckenanalyse">
+    <meta property="og:image:width" content="1300">
+    <meta property="og:image:height" content="880">
+    <meta property="og:locale" content="de_DE">
+    <meta property="og:site_name" content="gabischatz.de.cool">
+
+    <!-- ═══════════════════════════════════════════
+         Twitter Card – Vorschau auf X / Twitter
+    ═══════════════════════════════════════════ -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Tour Analyzer Pro">
+    <meta name="twitter:description" content="GPX laden, OSM-Daten analysieren und Ergebnisse exportieren.">
+    <meta name="twitter:image" content="https://gabischatz.de.cool/tour-analyzer/preview.png">
+    <meta name="twitter:image:alt" content="Vorschau von Tour Analyzer Pro">
+
+    <!-- ═══════════════════════════════════════════
+         Theme / Browserfarbe
+    ═══════════════════════════════════════════ -->
+    <meta name="theme-color" content="#243447">
+    <meta name="color-scheme" content="light">
+
+    <link rel="icon" type="image/png" href="demo.png" sizes="256x256">
+    <link rel="apple-touch-icon" href="demo.png">
+
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+
     <div class="topbar">
-        <div>
-            <div class="title">Tour Analyzer Pro v17 – Haltepunkte + Debug + Exporte + OSM-Netz</div>
-            <div class="subtitle" id="metaDisplay">Lutz Müller (gabischatz)</div>
+        <div class="top" style="gap: 2rem;
+                                display: flex;
+                                align-items: center;
+                                justify-content: flex-start;
+                                width: 100%;
+                            ">
+            <div class="title">Tour Analyzer Pro</div>
+            <div class="subtitle" id="metaDisplay">&copy; by Lutz Müller (gabischatz)</div>
+            <button class="btn btn-demo" id="loadDemoBtn" type="button">🧪 Demo-Route laden</button>
         </div>
-        <div class="hint">Rechtsklick bleibt optional. Hauptlogik ab v17: erst GPX-Bereich, dann OSM-Netz, dann Punkte und Teilstücke.</div>
+        <div class="topbar-actions">
+            <div class="hint">Rechtsklick ist optional. Neu: Debug-Protokoll, Antwort-Statistik und mehrere Exporte.</div>
+        </div>
     </div>
 
     <div class="app-shell">
@@ -25,12 +78,15 @@
                     <div class="panel-body controls">
                         <div class="row">
                             <label class="file-label">📂 GPX öffnen <input type="file" id="gpxFileInput" accept=".gpx"></label>
-                            <button class="btn btn-primary" id="reloadOsmBtn" disabled>🚲 OSM-Radrouten neu laden</button>
-                            <button class="btn btn-accent" id="extractBtn" disabled>✂️ Teilstücke berechnen</button>
-                            <button class="btn btn-secondary" id="exportBtn" disabled>💾 Sammel-Export</button>
-                            <button class="btn btn-warn" id="resetBtn">🗑️ Zurücksetzen</button>
+                            
+                            <button class="btn btn-accent" id="extractBtn" style="display:none;" disabled>✂️ Teilstücke berechnen</button>
+                            <button class="btn btn-secondary" id="exportBtn" style="display:none;" disabled>💾 Sammel-Export</button>
+                            <button class="btn btn-primary" id="reloadOsmBtn" style="display:none;" disabled>🚲 OSM-Radrouten neu laden</button>
+                            <button class="btn btn-warn" id="resetBtn" style="display:none;">🗑️ Zurücksetzen</button> 
+                           <!-- -->
                         </div>
-                        <div class="row">
+
+                        <div class="row" style="display:none;">
                             <div class="field">
                                 <label for="relationIdInput">Optionale Relation-ID</label>
                                 <input id="relationIdInput" type="number" placeholder="z. B. 3303088">
@@ -44,50 +100,57 @@
                                 <input id="pointB" type="text" placeholder="wird per Rechtsklick gesetzt">
                             </div>
                         </div>
-                        <div class="status" id="status">Bereit. Bitte eine GPX-Datei laden.</div>
+
+                        <div class="status" id="status">Bereit. Bitte eine GPX-Datei laden. Danach werden die OSM-Radrouten geladen, die Punkte automatisch gesucht und daraus Teilstücke berechnet. Alternativ kann oben rechts die Demo-Route geladen werden.</div>
                     </div>
                 </details>
+
                 <details class="panel" open>
                     <summary>2. Beschreibung und Legende</summary>
                     <div class="panel-body">
-                        <div class="compact-box">Aufteilung: links Optionen, rechts Karte. Jeder Bereich kann ein-/ausgeklappt werden.</div>
+                        <div class="compact-box">Diese Debug-Ansicht ist jetzt klar getrennt: links alle Optionen, rechts die Karte. Jeder Abschnitt links kann einzeln ein- und ausgeklappt werden. So bleiben Karte, Status und Debugging gleichzeitig besser sichtbar.</div>
                         <div class="legend">
                             <span class="legend-item"><span class="swatch" style="background:#facc15"></span> Aufgenommene Route</span>
                             <span class="legend-item"><span class="swatch" style="background:#2563eb"></span> Hinweg</span>
                             <span class="legend-item"><span class="swatch" style="background:#dc2626"></span> Rückweg</span>
                             <span class="legend-item"><span class="swatch" style="background:#16a34a"></span> OSM-Radrouten</span>
-                            <span class="legend-item"><span class="swatch" style="background:#7c3aed"></span> Netz-Teilstücke</span>
+                            <span class="legend-item"><span class="swatch" style="background:#facc15;border-style:dashed;border-color:#dc2626"></span> Gemeinsame Strecke mit roter Punktierung</span>
+                            <span class="legend-item"><span class="swatch" style="background:#7c3aed"></span> Berechnete Netz-Teilstücke</span>
                             <span class="legend-item">🟠 Kurvenpunkte</span>
                             <span class="legend-item">🟪 Abzweig/Zusammenführung</span>
                         </div>
                     </div>
                 </details>
+
+
                 <details class="panel" open>
                     <summary>3. Haltepunkte</summary>
                     <div class="panel-body">
                         <div class="quick-actions">
-                            <label class="toggle-item"><input type="checkbox" id="breakpointsEnabled" checked> Haltepunkte aktiv</label>
+                            <label class="toggle-item" style="display:none;"><input type="checkbox" id="breakpointsEnabled" checked> Haltepunkte aktiv</label>
                             <button class="small-btn" id="breakpointsAllBtn" type="button">Alle Haltepunkte</button>
                             <button class="small-btn" id="breakpointsNoneBtn" type="button">Keine Haltepunkte</button>
                         </div>
                         <div class="toggle-grid">
-                            <label class="toggle-item"><input type="checkbox" id="bpFileSelected" checked> GPX ausgewählt</label>
-                            <label class="toggle-item"><input type="checkbox" id="bpGpxParsed" checked> GPX geparst</label>
-                            <label class="toggle-item"><input type="checkbox" id="bpTrackSimplified" checked> GPX vereinfacht</label>
-                            <label class="toggle-item"><input type="checkbox" id="bpTrackAnalyzed" checked> Analyse fertig</label>
-                            <label class="toggle-item"><input type="checkbox" id="bpOsmLoadStart" checked> OSM-Laden starten</label>
-                            <label class="toggle-item"><input type="checkbox" id="bpOverpassBefore" checked> Overpass senden</label>
-                            <label class="toggle-item"><input type="checkbox" id="bpOverpassAfter" checked> Overpass verarbeitet</label>
-                            <label class="toggle-item"><input type="checkbox" id="bpGraphBuilt" checked> Graph aufgebaut</label>
-                            <label class="toggle-item"><input type="checkbox" id="bpAutoPoints" checked> Auto-Punkte erkannt</label>
-                            <label class="toggle-item"><input type="checkbox" id="bpRoutePieces" checked> Teilstücke berechnet</label>
-                            <label class="toggle-item"><input type="checkbox" id="bpManualSegment" checked> Manuelles Teilstück</label>
+                            <label class="toggle-item"><input type="checkbox" class="bp-toggle" id="bpFileSelected" checked> GPX-Datei ausgewählt</label>
+                            <label class="toggle-item"><input type="checkbox" class="bp-toggle" id="bpGpxParsed" checked> GPX geparst</label>
+                            <label class="toggle-item"><input type="checkbox" class="bp-toggle" id="bpTrackSimplified" checked> GPX vereinfacht</label>
+                            <label class="toggle-item"><input type="checkbox" class="bp-toggle" id="bpTrackAnalyzed" checked> Bereich / Analyse fertig</label>
+                            <label class="toggle-item"><input type="checkbox" class="bp-toggle" id="bpOsmLoadStart" checked> OSM-Laden starten</label>
+                            <label class="toggle-item"><input type="checkbox" class="bp-toggle" id="bpOverpassBefore" checked> Overpass senden</label>
+                            <label class="toggle-item"><input type="checkbox" class="bp-toggle" id="bpOverpassAfter" checked> Overpass verarbeitet</label>
+                            <label class="toggle-item"><input type="checkbox" class="bp-toggle" id="bpGraphBuilt" checked> OSM-Graph aufgebaut</label>
+                            <label class="toggle-item"><input type="checkbox" class="bp-toggle" id="bpAutoPoints" checked> Auto-Punkte erkannt</label>
+                            <label class="toggle-item"><input type="checkbox" class="bp-toggle" id="bpRoutePieces" checked> Teilstücke berechnet</label>
+                            <label class="toggle-item"><input type="checkbox" class="bp-toggle" id="bpManualSegment" checked> Manuelles Teilstück A→B</label>
                         </div>
                         <div class="compact-box breakpoint-summary">
-                            <strong>Aktueller Halt:</strong> <span id="breakpointStatus">Kein Haltepunkt aktiv.</span>
+                            <strong>Aktueller Halt:</strong> <span id="breakpointStatus">Kein Haltepunkt aktiv.</span><br>
+                            Jeder aktivierte Haltepunkt stoppt die Verarbeitung an genau dieser Stelle, schreibt den Schritt in die Konsole und wartet auf deine Freigabe.
                         </div>
                     </div>
                 </details>
+
                 <details class="panel" open>
                     <summary>4. Anzeigeoptionen und Statistik</summary>
                     <div class="panel-body">
@@ -112,11 +175,12 @@
                             <div class="stat-card"><div class="k">Hinweg</div><div class="v" id="statOutbound">–</div></div>
                             <div class="stat-card"><div class="k">Rückweg</div><div class="v" id="statReturn">–</div></div>
                             <div class="stat-card"><div class="k">Gemeinsam</div><div class="v" id="statCommon">–</div></div>
-                            <div class="stat-card"><div class="k">Punkte / Teilstücke</div><div class="v" id="statSegment">–</div></div>
+                            <div class="stat-card"><div class="k">Punkte / Teilstücke / A→B</div><div class="v" id="statSegment">–</div></div>
                             <div class="stat-card"><div class="k">OSM-Radrouten</div><div class="v" id="statRoutes">–</div></div>
                         </div>
                     </div>
                 </details>
+
                 <details class="panel" open>
                     <summary>5. Exporte</summary>
                     <div class="panel-body">
@@ -132,8 +196,9 @@
                         </div>
                     </div>
                 </details>
+
                 <details class="panel" open>
-                    <summary>6. Overpass-Antwort</summary>
+                    <summary>6. Overpass-Antwort und Verarbeitung</summary>
                     <div class="panel-body debug-box">
                         <div class="debug-grid">
                             <div class="debug-card">
@@ -147,23 +212,28 @@
                         </div>
                     </div>
                 </details>
+
                 <details class="panel" open>
                     <summary>7. Datenlogging</summary>
                     <div class="panel-body">
-                        <button class="small-btn" id="clearLogBtn">🧹 Log leeren</button>
+                        <div class="row">
+                            <button class="small-btn" id="clearLogBtn">🧹 Log leeren</button>
+                        </div>
                         <div class="log-panel" id="logPanel">Noch keine Log-Einträge.</div>
                     </div>
                 </details>
             </div>
         </aside>
+
         <main class="map-shell">
             <div class="map-toolbar">
                 <button class="toggle-sidebar-btn" id="toggleSidebarBtn" type="button">☰ Optionen ausblenden</button>
-                <div class="map-toolbar-info">Rechtsklick auf Karte setzt Punkte A/B</div>
+                <div class="map-toolbar-info">Rechts die Karte, links die Bedienfelder. Jeder Bereich links kann einzeln aufgeklappt oder eingeklappt werden.</div>
             </div>
             <div id="map"></div>
         </main>
     </div>
+
 
     <div class="breakpoint-modal hidden" id="breakpointModal" aria-hidden="true">
         <div class="breakpoint-card" id="breakpointCard">
@@ -177,7 +247,6 @@
             </div>
         </div>
     </div>
-
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/togeojson/0.16.0/togeojson.min.js"></script>
     <script src="js/debug.js"></script>
@@ -187,14 +256,13 @@
     <script src="js/export.js"></script>
     <script src="js/app.js"></script>
     <script>
-        // Warten auf DOMContentLoaded, bevor die App gestartet wird
-        document.addEventListener('DOMContentLoaded', function() {
-            if (window.TourAnalyzer && typeof window.TourAnalyzer.initApp === 'function') {
-                window.TourAnalyzer.initApp();
-            } else {
-                console.error('TourAnalyzer.initApp wurde nicht gefunden.');
-            }
-        });
+    document.addEventListener('DOMContentLoaded', function () {
+        if (window.TAP && typeof window.TAP.initApp === 'function') {
+            window.TAP.initApp();
+        } else {
+            console.error('TAP.initApp wurde nicht gefunden.');
+        }
+    });
     </script>
 </body>
 </html>

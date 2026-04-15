@@ -31,6 +31,10 @@ Die weitere Aufbereitung erfolgt hier:
 
 Siehe dort auch die `README.md`.
 
+## Hinweis zu OSM-/Overpass-Servern
+
+OSM-/Overpass-Server verweigern zeitweise die Zusammenarbeit oder antworten gar nicht. In solchen Fällen wird versucht, automatisch auf einen anderen Server zu wechseln. Dieser Wechsel und die erneuten Versuche können mehrere Minuten in Anspruch nehmen.
+
 ## Unsicherheit bei der OSM-Abfrage
 
 Aktuell ist noch nicht abschließend geklärt, ob die verwendete OSM-/Overpass-Abfrage fachlich bereits vollständig korrekt ist. Der technische Abruf funktioniert in Teilen besser als zuvor, die inhaltliche Bewertung und saubere Interpretation der Daten ist aber noch offen.
