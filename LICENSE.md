@@ -1,6 +1,6 @@
 # Lizenz
 
-**GPX-kombinieren-Editor**  
+**Tour-Analyzer-Pro**  
 Copyright (c) **Lutz Müller (gabischatz)**
 
 Dieses Werk ist lizenziert unter der  
