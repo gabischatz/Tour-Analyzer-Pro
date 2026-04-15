@@ -65,4 +65,8 @@ Diese Aufteilung dient zuerst der besseren Wartbarkeit. Ziel war, die bestehende
 
 ## Lizenz / Hinweise
 
-Bitte bei Veröffentlichung noch ergänzen, welche Lizenz verwendet werden soll.
+Dieses Projekt ist unter der Lizenz **CC BY-SA 4.0** veröffentlicht.
+
+Die vollständigen Lizenzbedingungen findest du in der Datei `LICENSE.md`.
+
+Copyright (c) Lutz Müller (gabischatz)
